@@ -1,18 +1,18 @@
 version: 2.1
 
-defaults: &defaults
+executors:
   working_directory: ~/repo
   docker:
     - image: cimg/node:20.5.1
 
-orbs:
-  sonarcloud: sonarsource/sonarcloud@2.0.0
+
 
 jobs:
   test:
-    <<: *defaults  
-    steps:
-      - checkout
+   working_directory: ~/repo
+   executer: node
+  steps:
+      - checkout #descarga el código del repositorio
 
       - restore_cache:
           keys:
@@ -37,44 +37,12 @@ jobs:
       - persist_to_workspace:
           root: ~/repo
           paths: .
-  deploy:
-    <<: *defaults
-    steps:
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/repo/.npmrc
-      - run:
-          name: Pack package
-          command: npm pack
-      - run:
-          name: Publish package
-          command: npm publish --dry run
-      - store_artifacts:
-          path: ~/repo/my-awesome-package-1.1.0.tgz
-          destination: package/release.tgz
-      - store_artifacts:
-          path: ~/repo/dist
-          destination: dist
-      - store_artifacts:
-          path: ~/repo/docs
-          destination: docs
+
+   
             
 workflows:
   test-deploy:
     jobs:
       - test:
           context: dev
-          filters:
-            tags:
-              only: /^v.*/
-      - deploy:
-          context: dev
-          requires:
-            - test
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
+        
