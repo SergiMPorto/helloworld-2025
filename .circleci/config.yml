@@ -42,8 +42,34 @@ jobs: # el job que va a ejecutar el workflow
           root: ~/repo   # Guardar para utilizar posteriormente en el siguiente job
           paths: .
 
+  deploy:
+    executor: node
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/repo/.npmrc
+      - run:
+          name: Pack package
+          command: npm pack
+      - run:
+          name: Publish package
+          command: npm publish --dry run
+      - store_artifacts:
+          path: ~/repo/my-awesome-package-1.1.0.tgz
+          destination: package/release.tgz
+      - store_artifacts:
+          path: ~/repo/dist
+          destination: dist
+      - store_artifacts:
+          path: ~/repo/docs
+          destination: docs
 workflows:
-  test: # el job al que va a llamar el workflow
+  test-and-deploy: # el job al que va a llamar el workflow
     jobs:
       - test:
           context: SonarCloud
+      - deploy:
+          requires:
+            - test
