@@ -1,12 +1,14 @@
 version: 2.1
-orbs:   #paquete reutilizable que contiene comandos, jobs y ejecutores predefinidos 
+
+orbs:   # Paquete reutilizable que contiene comandos, jobs y ejecutores predefinidos 
   sonarcloud: sonarsource/sonarcloud@2.0.0
+
 executors:
   node:
     docker:
       - image: cimg/node:20.5.1
 
-jobs: # el job que va a ejecutar el workflow
+jobs: # Definición de jobs
   test:
     working_directory: ~/project
     executor: node
@@ -16,7 +18,6 @@ jobs: # el job que va a ejecutar el workflow
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package.json" }}
-            # Fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
       - run: npm install
@@ -36,11 +37,28 @@ jobs: # el job que va a ejecutar el workflow
 
       - store_test_results:
           path: test-results.xml
-      - sonarcloud/scan    
+      
+      - sonarcloud/scan  # Ejecuta el análisis de código en SonarCloud
 
       - persist_to_workspace:
-          root: ~/project   # Guardar para utilizar posteriormente en el siguiente job
+          root: ~/project   # Guarda los archivos para utilizarlos en otro job
           paths: .
+
+  build:
+    working_directory: /tmp
+    executor: node
+    steps:
+      - run:
+          name: Creating Dummy Artifacts
+          command: |
+            echo "my artifact file" > /tmp/art-1;
+            mkdir /tmp/artifacts;
+            echo "my artifact files in a dir" > /tmp/artifacts/art-2;
+      - store_artifacts:
+          path: /tmp/art-1
+          destination: artifact-file
+      - store_artifacts:
+          path: /tmp/artifacts
 
   deploy:
     executor: node
@@ -58,21 +76,25 @@ jobs: # el job que va a ejecutar el workflow
           command: npm pack
       - run:
           name: Publish package
-          command: npm publish --dry run
+          command: npm publish --dry-run
       - store_artifacts:
-          path: ~/repo/my-awesome-package-1.1.0.tgz
+          path: ~/project/my-awesome-package-1.1.0.tgz
           destination: package/release.tgz
       - store_artifacts:
-          path: ~/repo/dist
+          path: ~/project/dist
           destination: dist
       - store_artifacts:
-          path: ~/repo/docs
+          path: ~/project/docs
           destination: docs
+
 workflows:
-  test-and-deploy: # el job al que va a llamar el workflow
+  test-and-deploy: # Flujo de trabajo que ejecuta los jobs
     jobs:
       - test:
           context: SonarCloud
-      - deploy:
+      - build:
           requires:
             - test
+      - deploy:
+          requires:
+            - build
