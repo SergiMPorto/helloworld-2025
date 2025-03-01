@@ -1,5 +1,6 @@
 version: 2.1
-
+orbs:   #paquete reutilizable que contiene comandos, jobs y ejecutores predefinidos 
+  sonarcloud: sonarsource/sonarcloud@2.0.0
 executors:
   node:
     docker:
@@ -35,6 +36,7 @@ jobs: # el job que va a ejecutar el workflow
 
       - store_test_results:
           path: test-results.xml
+      - sonarcloud/scan    
 
       - persist_to_workspace:
           root: ~/repo   # Guardar para utilizar posteriormente en el siguiente job
@@ -44,4 +46,4 @@ workflows:
   test: # el job al que va a llamar el workflow
     jobs:
       - test:
-          context: dev
+          context: SonarCloud
