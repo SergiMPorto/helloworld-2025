@@ -2,7 +2,6 @@ version: 2.1
 
 executors:
   node:
-    
     docker:
       - image: cimg/node:20.5.1
 
@@ -39,10 +38,10 @@ jobs: # el job que va a ejecutar el workflow
 
       - persist_to_workspace:
           root: ~/repo   # Guardar para utilizar posteriormente en el siguiente job
-          paths: . 
+          paths: .
 
 workflows:
-  test: #el job al que va a llamar el workflow
+  test: # el job al que va a llamar el workflow
     jobs:
       - test:
           context: dev
