@@ -8,7 +8,7 @@ executors:
 
 jobs: # el job que va a ejecutar el workflow
   test:
-    working_directory: ~/repo
+    working_directory: ~/project
     executor: node
     steps:
       - checkout # Descarga el código del repositorio
@@ -39,14 +39,17 @@ jobs: # el job que va a ejecutar el workflow
       - sonarcloud/scan    
 
       - persist_to_workspace:
-          root: ~/repo   # Guardar para utilizar posteriormente en el siguiente job
+          root: ~/project   # Guardar para utilizar posteriormente en el siguiente job
           paths: .
 
   deploy:
     executor: node
     steps:
       - attach_workspace:
-          at: ~/repo
+          at: ~/project
+      - run:
+          name: Debug Workspace
+          command: ls -la ~/project
       - run:
           name: Authenticate with registry
           command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/repo/.npmrc
