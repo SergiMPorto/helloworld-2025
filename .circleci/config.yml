@@ -52,7 +52,7 @@ jobs: # el job que va a ejecutar el workflow
           command: ls -la ~/project
       - run:
           name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/repo/.npmrc
+          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/project/.npmrc
       - run:
           name: Pack package
           command: npm pack
